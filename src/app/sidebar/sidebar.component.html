@@ -1,0 +1,18 @@
+ <div class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <i class="fas fa-utensils"></i>
+                <span class="logo-text">{{restaurantName}}</span>
+            </div>
+        </div>
+        
+        <ul class="sidebar-menu">
+            <li><a routerLink="/" href="#" class="active"><i class="fas fa-tachometer-alt"></i> <span class="menu-text">{{this.translationService.translate("sidebar_dashboard")}}</span></a></li>
+            <li><a href="#"><i class="fas fa-shopping-basket"></i> <span class="menu-text">{{this.translationService.translate("sidebar_orders")}}</span> <span class="menu-badge">5</span></a></li>
+            <li><a routerLink="/menuItem" href="#"><i class="fas fa-utensils"></i> <span class="menu-text">{{this.translationService.translate("sidebar_menu_items")}}</span></a></li>
+            <li><a href="#"><i class="fas fa-users"></i> <span class="menu-text">{{this.translationService.translate("sidebar_customers")}}</span></a></li>
+            <li><a href="#"><i class="fas fa-chart-line"></i> <span class="menu-text">{{this.translationService.translate("sidebar_analytics")}}</span></a></li>
+            <li><a href="#"><i class="fas fa-cog"></i> <span class="menu-text">{{this.translationService.translate("sidebar_settings")}}</span></a></li>
+            <li><a href="#"><i class="fas fa-sign-out-alt"></i> <span class="menu-text">{{this.translationService.translate("sidebar_logout")}}</span></a></li>
+        </ul>
+    </div>

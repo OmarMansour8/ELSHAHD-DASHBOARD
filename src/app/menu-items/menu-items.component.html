@@ -1,0 +1,221 @@
+<div class="menu-items-container">
+    <!-- Top Navbar -->
+<app-navbar></app-navbar>
+    <!-- Header Section -->
+    <div class="page-header">
+        <div class="header-content">
+            <h1>{{ 'sidebar_menu_items' }}</h1>
+            <p>Manage your restaurant menu items, categories, and pricing</p>
+        </div>
+        <button class="btn-primary" (click)="openAddItemModal()">
+            <i class="bi bi-plus-circle"></i>
+            Add New Item
+        </button>
+    </div>
+
+    <!-- Filters and Search -->
+    <div class="filters-section">
+        <div class="search-box">
+            <i class="bi bi-search"></i>
+            <input type="text" 
+                   
+                   (input)="filterItems()"
+                   placeholder="Search menu items...">
+        </div>
+        
+        <div class="filter-controls">
+            <select (change)="filterItems()">
+                <option value="">{{ 'category_all'  }}</option>
+                <option value="appetizers">{{ 'category_appetizers'  }}</option>
+                <option value="main">{{ 'category_main'  }}</option>
+                <option value="desserts">{{ 'category_desserts'  }}</option>
+                <option value="drinks">{{ 'category_drinks'  }}</option>
+            </select>
+            
+            <select  (change)="sortItems()">
+                <option value="name">Sort by Name</option>
+                <option value="price">Sort by Price</option>
+                <option value="date">Sort by Date</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Stats Overview -->
+    <div class="menu-stats">
+        <div class="stat-item">
+            <div class="stat-icon">
+                <i class="bi bi-egg-fried"></i>
+            </div>
+            <div class="stat-info">
+                <h3>Total Items</h3>
+                <span class="stat-number">{{ menuItems.length }}</span>
+            </div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-icon">
+                <i class="bi bi-star"></i>
+            </div>
+            <div class="stat-info">
+                <h3>Active Items</h3>
+                <span class="stat-number">{{ activeItemsCount }}</span>
+            </div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-icon">
+                <i class="bi bi-tags"></i>
+            </div>
+            <div class="stat-info">
+                <h3>Categories</h3>
+                <span class="stat-number">4</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Menu Items Grid -->
+    <div class="menu-items-grid">
+        <div *ngFor="let item of filteredItems" class="menu-item-card">
+            <div class="item-image">
+                <img [src]="item.image" [alt]="item.name" (error)="handleImageError($event)">
+                <div class="item-status" [class.active]="item.active" [class.inactive]="!item.active">
+                    {{ item.active ? 'Active' : 'Inactive' }}
+                </div>
+                <div class="item-actions">
+                    <button class="btn-icon" (click)="editItem(item)" title="Edit">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                    <button class="btn-icon" (click)="toggleItemStatus(item)" [title]="item.active ? 'Deactivate' : 'Activate'">
+                        <i class="bi" [class.bi-eye]="!item.active" [class.bi-eye-slash]="item.active"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="item-content">
+                <div class="item-header">
+                    <h3 class="item-name">{{ item.name }}</h3>
+                    <span class="item-price">${{ item.price }}</span>
+                </div>
+                
+                <p class="item-description">{{ item.description }}</p>
+                
+                <div class="item-meta">
+                    <span class="item-category" [class]="item.category">
+                        {{ getCategoryName(item.category) }}
+                    </span>
+                    <span class="item-calories" *ngIf="item.calories">
+                        <i class="bi bi-fire"></i> {{ item.calories }} cal
+                    </span>
+                </div>
+                
+                <div class="item-footer">
+                    <div class="item-rating">
+                        <i class="bi bi-star-fill"></i>
+                        <span>{{ item.rating || '4.5' }}</span>
+                    </div>
+                    <div class="item-orders">
+                        <i class="bi bi-cart"></i>
+                        <span>{{ item.orderCount || 0 }} orders</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="filteredItems.length === 0" class="empty-state">
+        <i class="bi bi-egg"></i>
+        <h3>No menu items found</h3>
+        <p>Try adjusting your search or add a new menu item</p>
+        <button class="btn-primary" (click)="openAddItemModal()">
+            <i class="bi bi-plus-circle"></i>
+            Add Your First Item
+        </button>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loading" class="loading-state">
+        <div class="spinner"></div>
+        <p>Loading menu items...</p>
+    </div>
+</div>
+
+<!-- Add/Edit Item Modal -->
+<div *ngIf="showModal" class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+            <h2>{{ editingItem ? 'Edit Menu Item' : 'Add New Menu Item' }}</h2>
+            <button class="btn-close" (click)="closeModal()">
+                <i class="bi bi-x"></i>
+            </button>
+        </div>
+        
+        <form  (ngSubmit)="saveItem()" class="modal-body">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="itemName">Item Name *</label>
+                    <input type="text" id="itemName" formControlName="name" placeholder="Enter item name">
+                    <div *ngIf="itemForm.get('name')?.invalid && itemForm.get('name')?.touched" class="error-message">
+                        Item name is required
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="itemPrice">Price ($) *</label>
+                    <input type="number" id="itemPrice" formControlName="price" placeholder="0.00" step="0.01" min="0">
+                    <div *ngIf="itemForm.get('price')?.invalid && itemForm.get('price')?.touched" class="error-message">
+                        Valid price is required
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="itemDescription">Description</label>
+                <textarea id="itemDescription" formControlName="description" 
+                          placeholder="Describe this menu item..." rows="3"></textarea>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="itemCategory">Category *</label>
+                    <select id="itemCategory" formControlName="category">
+                        <option value="">Select Category</option>
+                        <option value="appetizers">Appetizers</option>
+                        <option value="main">Main Courses</option>
+                        <option value="desserts">Desserts</option>
+                        <option value="drinks">Drinks</option>
+                    </select>
+                    <div *ngIf="itemForm.get('category')?.invalid && itemForm.get('category')?.touched" class="error-message">
+                        Category is required
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="itemCalories">Calories</label>
+                    <input type="number" id="itemCalories" formControlName="calories" placeholder="Optional">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="itemImage">Image URL</label>
+                <input type="url" id="itemImage" formControlName="image" placeholder="https://example.com/image.jpg">
+            </div>
+            
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" formControlName="active">
+                    <span class="checkmark"></span>
+                    Active (Visible to customers)
+                </label>
+            </div>
+        </form>
+        
+        <div class="modal-footer">
+            <button type="button" class="btn-secondary" (click)="closeModal()">Cancel</button>
+            <button type="submit" 
+                    class="btn-primary" 
+                    (click)="saveItem()"
+                    [disabled]="itemForm.invalid">
+                {{ editingItem ? 'Update Item' : 'Add Item' }}
+            </button>
+        </div>
+    </div>
+</div>
