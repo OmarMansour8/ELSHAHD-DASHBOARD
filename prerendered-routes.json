@@ -1,0 +1,8 @@
+{
+  "routes": [
+    "/add-product",
+    "/home",
+    "/login",
+    "/menu-items"
+  ]
+}
